@@ -3,41 +3,26 @@ using FireSharp.Config;
 using FireSharp.Interfaces;
 using FireSharp.Response;
 using Library.Models;
-using System.Text.Json;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Library.Logic;
 
 namespace Library.Controllers
 {
     public class BookController : Controller
     {
 
-        // Needs updating to Admin SDK
-        readonly IFirebaseConfig config = new FirebaseConfig { AuthSecret = "nnCSNoZVjDfwLrRZjJaWWVErbOjJrm2NBToOMS7d", BasePath = "https://library-fcc0a-default-rtdb.europe-west1.firebasedatabase.app" };
-        private IFirebaseClient? client;
+        private readonly FirebaseDataManager firebaseDataManager;
+
+        public BookController()
+        {
+            firebaseDataManager = new FirebaseDataManager();
+        }
         public IActionResult Index()
         {
             try
             {
-                client = new FireSharp.FirebaseClient(config);
-                FirebaseResponse response = client.Get("Books");
-                dynamic? data = JsonConvert.DeserializeObject<dynamic>(response.Body);
-                var list = new List<Book?>();
-                if (data != null)
-                {
-                    foreach (var item in data)
-                    {
-                        Book? book = JsonConvert.DeserializeObject<Book>(((JProperty)item).Value.ToString());
-                        if (book != null && book.UnavailableUntil < DateTime.Now)
-                        {
-                            book.IsAvailable = true;
-                            SetResponse setResponse = client.Set("Books/" + book.Id, book);
-                        }
-                        list.Add(book);
-                    }
-                }
-
-                return View(list);
+                return View(firebaseDataManager.GetAllBooks());
             }
             catch (Exception ex)
             {
@@ -49,6 +34,10 @@ namespace Library.Controllers
         [HttpGet]
         public IActionResult Create()
         {
+            if (HttpContext.Session.GetString("email") == null)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
             return View();
         }
 
@@ -57,10 +46,8 @@ namespace Library.Controllers
         {
             try
             {
-                client = new FireSharp.FirebaseClient(config);
-                PushResponse response = client.Push("Books/", book);
-                book.Id = response.Result.name;
-                SetResponse setResponse = client.Set("Books/" + book.Id, book);
+                
+                SetResponse setResponse = firebaseDataManager.AddBook(book);
                 if (setResponse.StatusCode == System.Net.HttpStatusCode.OK)
                 {
                     ModelState.AddModelError(string.Empty, "Added Succesfully");
@@ -85,12 +72,13 @@ namespace Library.Controllers
         [HttpGet]
         public IActionResult Edit(string id)
         {
+            if (HttpContext.Session.GetString("email") == null)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
             try
             {
-                client = new FireSharp.FirebaseClient(config);
-                FirebaseResponse response = client.Get("Books/" + id);
-                Book? data = JsonConvert.DeserializeObject<Book>(response.Body);
-                return View(data);
+                return View(firebaseDataManager.GetBook(id));
             }
             catch(Exception ex)
             {
@@ -104,8 +92,7 @@ namespace Library.Controllers
         {
             try
             {
-                client = new FireSharp.FirebaseClient(config);
-                SetResponse response = client.Set("Books/" + book.Id, book);
+                SetResponse response = firebaseDataManager.SetBook(book);
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
                     ModelState.AddModelError(string.Empty, "Edited Succesfully");
@@ -128,8 +115,7 @@ namespace Library.Controllers
         {
             try
             {
-                client = new FireSharp.FirebaseClient(config);
-                FirebaseResponse response = client.Delete("Books/" + id);
+                firebaseDataManager.DeleteBook(id);
             }
             catch (Exception ex)
             {
@@ -140,21 +126,22 @@ namespace Library.Controllers
 
         public IActionResult Delete(Book book)
         {
+            if (HttpContext.Session.GetString("email") == null)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
             return View(book);
         }
 
         public IActionResult ReserveBook(Book book)
         {
+            if(HttpContext.Session.GetString("email") == null)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
             try
             {
-                client = new FireSharp.FirebaseClient(config);
-                if(book.IsAvailable == true)
-                {
-                    book.IsAvailable = false; 
-                    book.UnavailableUntil = DateTime.Now.AddDays(1);
-                    SetResponse setResponse = client.Set("Books/" + book.Id, book);
-                }
-
+                firebaseDataManager.ReserveBook(book);
             }
             catch(Exception ex)
             {
@@ -165,11 +152,14 @@ namespace Library.Controllers
 
         public IActionResult ReturnedBook(Book book)
         {
+            if (HttpContext.Session.GetString("email") == null)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
             try
             {
-                client = new FireSharp.FirebaseClient(config);
                 book.IsAvailable = true;
-                SetResponse setResponse = client.Set("Books/" + book.Id, book);
+                firebaseDataManager.SetBook(book);
             }
             catch (Exception ex)
             {
@@ -181,6 +171,10 @@ namespace Library.Controllers
 
         public IActionResult BorrowBook(Book book)
         {
+            if (HttpContext.Session.GetString("email") == null)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
             return View(book);
         }
 
@@ -189,37 +183,18 @@ namespace Library.Controllers
         {
             try
             {
-                client = new FireSharp.FirebaseClient(config);
-                FirebaseResponse response = client.Get("Books/" + id);
-                Book? data = JsonConvert.DeserializeObject<Book>(response.Body);
-                if(data == null)
+                Book? book = firebaseDataManager.GetBook(id);
+                if(book == null)
                 {
                     ModelState.AddModelError(string.Empty, "Something went wrong!!");
                     return View();
                 }
                 if(borrowUntil == null)
                 {
-                    return View(data);
+                    return View(book);
                 }
-                if (DateTime.Parse(borrowUntil) <= DateTime.Now.AddMonths(3))
-                {
-                    data.IsAvailable = false;
-                    data.UnavailableUntil = DateTime.Parse(borrowUntil);
-                    SetResponse setResponse = client.Set("Books/" + data.Id, data);
-                    if (setResponse.StatusCode == System.Net.HttpStatusCode.OK)
-                    {
-                        ModelState.AddModelError(string.Empty, "Borrowed Succesfully");
-                    }
-                    else
-                    {
-                        ModelState.AddModelError(string.Empty, "Something went wrong!!");
-                    }
-                }
-                else
-                {
-                    ModelState.AddModelError(string.Empty, "You can only borrow for up to 3 months");
-                }
-                return View(data);
+                ModelState.AddModelError(string.Empty, firebaseDataManager.BorrowBook(borrowUntil, book));
+                return View(book);
 
             }
             catch(Exception ex)
@@ -236,59 +211,12 @@ namespace Library.Controllers
         }
 
         // possible bug on asp.net side, bool isAvailable always false, using string instead
-        public IActionResult SearchBookResults(string title, string author, string publisher, string publishingDateStart, string publishingDateEnd, string genre, string isbn, string isAvailable)
+        public IActionResult SearchBookResults(string? title, string? author, string? publisher, string? publishingDateStart, string? publishingDateEnd, string? genre, string? isbn, string? isAvailable)
         {
             try
             {
-                client = new FireSharp.FirebaseClient(config);
-                FirebaseResponse response = client.Get("Books");
-                dynamic? data = JsonConvert.DeserializeObject<dynamic>(response.Body);
-                var list = new List<Book?>();
-                if (data != null)
-                {
-                    foreach (var item in data)
-                    {
-                        Book? book = JsonConvert.DeserializeObject<Book>(((JProperty)item).Value.ToString());
-                        if (book != null && book.UnavailableUntil < DateTime.Now)
-                        {
-                            book.IsAvailable = true;
-                            SetResponse setResponse = client.Set("Books/" + book.Id, book);
-                        }
-                        list.Add(book);
-                    }
-                }
-                list.RemoveAll(item => item == null);
-                if(title != null)
-                {
-                    list.RemoveAll(item => item.Title.Contains(title));
-                }
-                if (author != null)
-                {
-                    list.RemoveAll(item => item.Author.Contains(author));
-                }
-                if (publisher != null)
-                {
-                    list.RemoveAll(item => item.Publisher.Contains(publisher));
-                }
-                if (genre != null)
-                {
-                    list.RemoveAll(item => item.Genre.Contains(genre));
-                }
-                if (isbn != null)
-                {
-                    list.RemoveAll(item => item.Isbn.Contains(isbn));
-                }
                 // May be bug on aps.net side, when trying to get bool isAvailable it is always false. Using string, which is null if isAvailable was not checked and not null when it was checked
-                list.RemoveAll(item => item.IsAvailable != (isAvailable != null));
-                if (publishingDateStart != null)
-                {
-                    list.RemoveAll(item => item.PublishingDate >= DateTime.Parse(publishingDateStart));
-                }
-                if (publishingDateEnd != null)
-                {
-                    list.RemoveAll(item => item.PublishingDate >= DateTime.Parse(publishingDateEnd));
-                }
-                return View(list);
+                return View(firebaseDataManager.SearchBook(title, author, publisher, publishingDateStart, publishingDateEnd, genre, isbn, (isAvailable != null)));
             }
             catch (Exception ex)
             {

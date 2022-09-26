@@ -43,8 +43,9 @@
                 @Html.DisplayFor(modelItem => item.IsAvailable)
             </td>
             <td>
-                @Html.ActionLink("Edit", "Edit", item) |
                 @Html.ActionLink("Details", "Details", item) |
+                
+                @Html.ActionLink("Edit", "Edit", item) |
                 @Html.ActionLink("Delete", "Delete", item) |
                 @if(item.IsAvailable)
                 {
