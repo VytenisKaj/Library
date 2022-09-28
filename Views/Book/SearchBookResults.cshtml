@@ -43,17 +43,19 @@
                 @Html.DisplayFor(modelItem => item.IsAvailable)
             </td>
             <td>
-                 @Html.ActionLink("Edit", "Edit", item) |
                 @Html.ActionLink("Details", "Details", item) |
-                @Html.ActionLink("Delete", "Delete", item) |
+                @if (ViewData["Role"] != null) {
+                    <place_holder>@Html.ActionLink("Edit", "Edit", item) |</place_holder>
+                    <place_holder>@Html.ActionLink("Delete", "Delete", item) |</place_holder>
+                }
                 @if(item.IsAvailable)
                 {
                      <place_holder>@Html.ActionLink("Reserve book", "ReserveBook", item) |</place_holder>
                      <place_holder>@Html.ActionLink("Borrow book", "BorrowBook", item) |</place_holder>
                 }
-                @if(!item.IsAvailable)
+                @if(!item.IsAvailable && ViewData["Role"] != null)
                 {
-                     <place_holder>@Html.ActionLink("Returned book", "ReturnedBook", item)</place_holder>
+                     <place_holder>@Html.ActionLink("Returned book", "ReturnedBook", item) |</place_holder>
                 }
             </td>
         </tr>

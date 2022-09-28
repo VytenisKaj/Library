@@ -34,10 +34,8 @@ namespace Library.Models
         [DisplayName("Unavailable until")]
         public DateTime? UnavailableUntil { get; set; }
 
-        public Book()
-        {
-           
-        }
+        [DisplayName("Taken by")]
+        public string? TakenBy { get; set; }
        
     }
 }

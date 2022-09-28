@@ -19,11 +19,48 @@ namespace Library.Logic
             client = new FireSharp.FirebaseClient(config);
         }
 
+        // May not be needed if better authrization solution will be implemented
+        public SetResponse AddUser(User user)
+        {
+            user.Id = PushObject("Users/", user).Result.name;
+            return SetUser(user);
+        }
+
+        public SetResponse SetUser(User user)
+        {
+            return client.Set("Users/" + user.Id, user);
+        }
+
+        public User? FindUserByEmail(string email)
+        {
+            FirebaseResponse response = client.Get("Users");
+            dynamic? data = JsonConvert.DeserializeObject<dynamic>(response.Body);
+            if (data != null)
+            {
+                foreach (var item in data)
+                {
+                    User? user = JsonConvert.DeserializeObject<User>(((JProperty)item).Value.ToString());
+                    if(user != null && user.Email == email)
+                    {
+                        return user;
+                    }
+                }
+
+            }
+            return null;
+            
+        }
+
         public SetResponse AddBook(Book book)
         {
-            PushResponse response = client.Push("Books/", book);
+            PushResponse response = PushObject("Books/", book);
             book.Id = response.Result.name;
             return SetBook(book);
+        }
+
+        public PushResponse PushObject<T>(string location, T obj)
+        {
+            return client.Push(location, obj);
         }
 
         public Book? GetBook(string id)

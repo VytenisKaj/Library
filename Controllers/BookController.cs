@@ -1,10 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using FireSharp.Config;
-using FireSharp.Interfaces;
 using FireSharp.Response;
 using Library.Models;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Library.Logic;
 
 namespace Library.Controllers
@@ -22,6 +18,7 @@ namespace Library.Controllers
         {
             try
             {
+                UpdateUser();
                 return View(firebaseDataManager.GetAllBooks());
             }
             catch (Exception ex)
@@ -38,6 +35,7 @@ namespace Library.Controllers
             {
                 return RedirectToAction("Login", "Auth");
             }
+            UpdateUser();
             return View();
         }
 
@@ -46,7 +44,7 @@ namespace Library.Controllers
         {
             try
             {
-                
+                UpdateUser();
                 SetResponse setResponse = firebaseDataManager.AddBook(book);
                 if (setResponse.StatusCode == System.Net.HttpStatusCode.OK)
                 {
@@ -66,18 +64,20 @@ namespace Library.Controllers
 
         public IActionResult Details(Book book)
         {
+            UpdateUser();
             return View(book);
         }
 
         [HttpGet]
         public IActionResult Edit(string id)
         {
-            if (HttpContext.Session.GetString("email") == null)
-            {
-                return RedirectToAction("Login", "Auth");
-            }
             try
             {
+                if (HttpContext.Session.GetString("email") == null)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
+                UpdateUser();
                 return View(firebaseDataManager.GetBook(id));
             }
             catch(Exception ex)
@@ -92,6 +92,7 @@ namespace Library.Controllers
         {
             try
             {
+                UpdateUser();
                 SetResponse response = firebaseDataManager.SetBook(book);
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
@@ -115,7 +116,13 @@ namespace Library.Controllers
         {
             try
             {
-                firebaseDataManager.DeleteBook(id);
+                var response = firebaseDataManager.DeleteBook(id);
+                if (response.StatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    UpdateUser();
+                    ModelState.AddModelError(string.Empty, "Something went wrong!!");
+                    return View();
+                }
             }
             catch (Exception ex)
             {
@@ -126,10 +133,12 @@ namespace Library.Controllers
 
         public IActionResult Delete(Book book)
         {
+            
             if (HttpContext.Session.GetString("email") == null)
             {
                 return RedirectToAction("Login", "Auth");
             }
+            UpdateUser();
             return View(book);
         }
 
@@ -141,6 +150,7 @@ namespace Library.Controllers
             }
             try
             {
+                book.TakenBy = HttpContext.Session.GetString("email");
                 firebaseDataManager.ReserveBook(book);
             }
             catch(Exception ex)
@@ -175,6 +185,7 @@ namespace Library.Controllers
             {
                 return RedirectToAction("Login", "Auth");
             }
+            UpdateUser();
             return View(book);
         }
 
@@ -183,6 +194,7 @@ namespace Library.Controllers
         {
             try
             {
+                UpdateUser();
                 Book? book = firebaseDataManager.GetBook(id);
                 if(book == null)
                 {
@@ -193,6 +205,7 @@ namespace Library.Controllers
                 {
                     return View(book);
                 }
+                book.TakenBy = HttpContext.Session.GetString("email");
                 ModelState.AddModelError(string.Empty, firebaseDataManager.BorrowBook(borrowUntil, book));
                 return View(book);
 
@@ -207,6 +220,7 @@ namespace Library.Controllers
 
         public IActionResult SearchBook()
         {
+            UpdateUser();
             return View();
         }
 
@@ -215,6 +229,7 @@ namespace Library.Controllers
         {
             try
             {
+                UpdateUser();
                 // May be bug on aps.net side, when trying to get bool isAvailable it is always false. Using string, which is null if isAvailable was not checked and not null when it was checked
                 return View(firebaseDataManager.SearchBook(title, author, publisher, publishingDateStart, publishingDateEnd, genre, isbn, (isAvailable != null)));
             }
@@ -224,6 +239,12 @@ namespace Library.Controllers
                 return View();
             }
             
+        }
+
+        private void UpdateUser()
+        {
+            ViewData["Email"] = HttpContext.Session.GetString("email");
+            ViewData["Role"] = HttpContext.Session.GetString("role");
         }
     }
  

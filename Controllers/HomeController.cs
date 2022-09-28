@@ -15,11 +15,13 @@ namespace Library.Controllers
 
         public IActionResult Index()
         {
+            ViewData["Email"] = HttpContext.Session.GetString("email");
             return View();
         }
 
         public IActionResult Privacy()
         {
+            ViewData["Email"] = HttpContext.Session.GetString("email");
             return View();
         }
 

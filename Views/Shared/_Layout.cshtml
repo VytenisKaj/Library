@@ -36,6 +36,18 @@
                 </div>
                 <div class="navbar right">
                         <ul class="navbar-nav ml-auto">
+                            @if (ViewData["Email"] != null)
+                            {
+                                <li>
+                                    <a class="nav-link">Signed in as: @ViewData["Email"]</a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li>
+                                    <a class="nav-link">Not signed in</a>
+                                </li>
+                            }
                             <li class="nav-item">
                                 <a class="nav-link" asp-area="" asp-controller="Auth" asp-action="Login">Log in</a>
                             </li>

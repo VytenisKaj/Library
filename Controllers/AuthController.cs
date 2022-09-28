@@ -7,18 +7,21 @@ namespace Library.Controllers
 {
     public class AuthController : Controller
     {
-        FirebaseAuthentificator firebaseAuthentificator;
+        readonly FirebaseAuthentificator firebaseAuthentificator;
         public AuthController()
         {
             firebaseAuthentificator = new FirebaseAuthentificator();
         }
         public IActionResult Login()
         {
+            ViewData["Email"] = HttpContext.Session.GetString("email");
             return View();
         }
 
         public IActionResult Register()
         {
+            ViewData["Email"] = HttpContext.Session.GetString("email");
+            ViewData["Role"] = HttpContext.Session.GetString("role");
             return View();
         }
 
@@ -27,15 +30,10 @@ namespace Library.Controllers
         {
             try
             {
-                #pragma warning disable CS8604 // Email or Password cannot be null, they have [Required] attribute in User model
-                await firebaseAuthentificator.CreateUser(user.Email, user.Password, HttpContext);
-                #pragma warning restore CS8604
-                if (HttpContext.Session.GetString("userToken") != null)
-                {
-                    HttpContext.Session.SetString("email", user.Email);
-                    HttpContext.Session.SetString("password", user.Password);
-                }
-                else
+                ViewData["Email"] = HttpContext.Session.GetString("email");
+                ViewData["Role"] = HttpContext.Session.GetString("role");
+                bool result = await firebaseAuthentificator.CreateUser(user, HttpContext);
+                if (!result)
                 {
                     ModelState.AddModelError(string.Empty, "Something went wrong");
                     return View();
@@ -49,24 +47,23 @@ namespace Library.Controllers
                 {
                     ModelState.AddModelError(string.Empty, "User with this email exists");
                 }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, ex.Message);
+                }
             }
             return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(Models.User user)
+        public async Task<IActionResult> Login(Models.User input)
         {
             try
             {
-                #pragma warning disable CS8604 // Email or Password cannot be null, they have [Required] attribute in User model
-                await firebaseAuthentificator.LoginUser(user.Email, user.Password, HttpContext);
-                #pragma warning restore CS8604
-                if (HttpContext.Session.GetString("userToken") != null)
-                {
-                    HttpContext.Session.SetString("email", user.Email);
-                    HttpContext.Session.SetString("password", user.Password);
-                }
-                else
+
+                ViewData["Email"] = HttpContext.Session.GetString("email");
+                bool result = await firebaseAuthentificator.LoginUser(input.Email ?? "", input.Password ?? "", HttpContext);
+                if (!result)
                 {
                     ModelState.AddModelError(string.Empty, "Something went wrong");
                     return View();
@@ -99,8 +96,7 @@ namespace Library.Controllers
         public IActionResult Logout()
         {
             HttpContext.Session.Remove("email");
-            HttpContext.Session.Remove("password");
-            HttpContext.Session.Remove("userToken");
+            HttpContext.Session.Remove("role");
 
             return RedirectToAction("Index", "Home");
         }

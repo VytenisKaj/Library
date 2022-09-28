@@ -4,7 +4,7 @@ namespace Library.Models
 {
     public class User
     {
-        public int Id { get; set; }
+        public string? Id { get; set; }
 
         [Required]
         public string? Email { get; set; }
@@ -13,7 +13,7 @@ namespace Library.Models
         [MinLength(6)]
         public string? Password { get; set; }
 
-        [Display(Name = "Is admin")]
+        [Display(Name = "Admin")]
         public bool IsAdmin { get; set; }
     }
 }

@@ -1,8 +1,11 @@
-﻿@{
+﻿@model string 
+
+@{
     ViewData["Title"] = "Home Page";
 }
 
 <div class="text-center">
     <h1 class="display-4">Welcome to library</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <p>To use most features you must <a asp-area="" asp-controller="Auth" asp-action="Login">Log in</a></p>
+    <p>Do not have an account? <a asp-area="" asp-controller="Auth" asp-action="Register">Register</a></p>
 </div>
