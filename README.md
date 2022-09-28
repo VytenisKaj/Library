@@ -19,11 +19,9 @@ This will set the book available again. This action require you to be logged on 
 For testing 2 accounts are already available:
 
 	● Regular user:
-	
 		○ email: user1@library.com
 		○ password: 123456
 	● Admin user:
-	
 		○ email: admin@library.com
 		○ password: admin1
 
@@ -35,5 +33,6 @@ NOTE: I know this application is not secure, however I cannot run a server on my
 However, this is not a production application and no real sensitive user information will be stored.
 
 How to run:
+
 	● Most convenient way is to open this solution in Visual Studio 2022(older versions should work, but it is not tested)
 	and launch using "IIS Express". Make sure you have required modules for ASP.NET.
