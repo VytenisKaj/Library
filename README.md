@@ -1,6 +1,7 @@
 ﻿## Library web application using .NET6 and ASP.NET
 
 Requirements:
+
 	● As a reader be able to find book by title, author, publisher, publishing date, genre, ISBN code and book status (Is it available)
 	● As a reader be able to borrow or reserve a book if it is not reserved or borrowed yet
 	● As a library manager be able to register returned books
@@ -16,10 +17,13 @@ Each of these actions require you to be logged in as user or admin.
 This will set the book available again. This action require you to be logged on as admin(as well as many other features, like adding or editing books)
 
 For testing 2 accounts are already available:
+
 	● Regular user:
+	
 		○ email: user1@library.com
 		○ password: 123456
 	● Admin user:
+	
 		○ email: admin@library.com
 		○ password: admin1
 
