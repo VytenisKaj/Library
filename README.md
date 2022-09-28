@@ -36,3 +36,4 @@ How to run:
 
 	● Most convenient way is to open this solution in Visual Studio 2022(older versions should work, but it is not tested)
 	and launch using "IIS Express". Make sure you have required modules for ASP.NET.
+NOTE: Internet connection is required to run this application!
