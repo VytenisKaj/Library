@@ -134,32 +134,42 @@ namespace Library.Logic
             return list;
         }
 
-        public List<Book?> SearchBook(string? title, string? author, string? publisher, string? publishingDateStart, string? publishingDateEnd, string? genre, string? isbn, bool isAvailable)
+        public List<Book?> SearchBook(string? title, string? author, string? publisher, string? publishingDateStart, string? publishingDateEnd, string? genre, string? isbn, string? availability)
         {
             List<Book?> books = GetAllBooks();
             books.RemoveAll(item => item == null);
             #pragma warning disable CS8602 // Dereference of a possibly null reference. item cannot be null, all of null cases were removed in line above(line 108)
             if (title != null)
             {
-                books.RemoveAll(item => item.Title == null || !item.Title.Contains(title));
+                books.RemoveAll(item => item.Title == null || !item.Title.ToLower().Contains(title.ToLower()));
             }
             if (author != null)
             {
-                books.RemoveAll(item => item.Author == null || !item.Author.Contains(author));
+                books.RemoveAll(item => item.Author == null || !item.Author.ToLower().Contains(author.ToLower()));
             }
             if (publisher != null)
             {
-                books.RemoveAll(item => item.Publisher == null || !item.Publisher.Contains(publisher));
+                books.RemoveAll(item => item.Publisher == null || !item.Publisher.ToLower().Contains(publisher.ToLower()));
             }
             if (genre != null)
             {
-                books.RemoveAll(item => item.Genre == null || !item.Genre.Contains(genre));
+                books.RemoveAll(item => item.Genre == null || !item.Genre.ToLower().Contains(genre.ToLower()));
             }
             if (isbn != null)
             {
-                books.RemoveAll(item => item.Isbn == null || !item.Isbn.Contains(isbn));
+                books.RemoveAll(item => item.Isbn == null || !item.Isbn.ToLower().Contains(isbn.ToLower()));
             }
-            books.RemoveAll(item => item.IsAvailable != isAvailable);
+            if(availability != null)
+            {
+                if(availability == "available")
+                {
+                    books.RemoveAll(item => item.IsAvailable == false);
+                }
+                else
+                {
+                    books.RemoveAll(item => item.IsAvailable == true);
+                }
+            }
             if (publishingDateStart != null)
             {
                 books.RemoveAll(item => !(item.PublishingDate >= DateTime.Parse(publishingDateStart)));

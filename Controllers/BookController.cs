@@ -225,13 +225,13 @@ namespace Library.Controllers
         }
 
         // possible bug on asp.net side, bool isAvailable always false, using string instead
-        public IActionResult SearchBookResults(string? title, string? author, string? publisher, string? publishingDateStart, string? publishingDateEnd, string? genre, string? isbn, string? isAvailable)
+        public IActionResult SearchBookResults(string? title, string? author, string? publisher, string? publishingDateStart, string? publishingDateEnd, string? genre, string? isbn, string? availability)
         {
             try
             {
                 UpdateUser();
                 // May be bug on aps.net side, when trying to get bool isAvailable it is always false. Using string, which is null if isAvailable was not checked and not null when it was checked
-                return View(firebaseDataManager.SearchBook(title, author, publisher, publishingDateStart, publishingDateEnd, genre, isbn, (isAvailable != null)));
+                return View(firebaseDataManager.SearchBook(title, author, publisher, publishingDateStart, publishingDateEnd, genre, isbn, availability == "all" ? null : availability));
             }
             catch (Exception ex)
             {

@@ -7,14 +7,14 @@ Requirements:
 	● As a library manager be able to register returned books
 
 ○ The first requirement is accomplished by "Search book" navigation item.
-List of books can be filtered by inputting parameters to search(leaving a field empty will not filter by it, exception "Available", has to be set to true or false)
+List of books can be filtered by inputting parameters to search(leaving a field empty will not filter by it, exception "Availability", it has to be chosen between "All", "Available" or "Not available", default "All")
 
 ○ The second requirement is accomplished in "Books" navigation item. They can be found next to each book
 Reserving a book will automatically reserve it for 1 calendar day and borrowing a book can be inputted manually for up to 3 months from actual date
 Each of these actions require you to be logged in as user or admin.
 
 ○ The third requirement is accomplished in "Books" navigation item. It can be done by pressing "Returned book".
-This will set the book available again. This action require you to be logged on as admin(as well as many other features, like adding or editing books)
+This will set the book available again. This action require you to be logged on as admin (as well as many other features, like adding or editing books)
 
 For testing 2 accounts are already available:
 
@@ -34,6 +34,6 @@ However, this is not a production application and no real sensitive user informa
 
 How to run:
 
-	● Most convenient way is to open this solution in Visual Studio 2022(older versions should work, but it is not tested)
+	● Most convenient way is to open this solution in Visual Studio 2022 (older versions should work, but it is not tested)
 	and launch using "IIS Express". Make sure you have required modules for ASP.NET.
 NOTE: Internet connection is required to run this application!
